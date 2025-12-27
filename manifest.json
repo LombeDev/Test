@@ -1,0 +1,31 @@
+{
+  "short_name": "Kopala FPL",
+  "name": "Kopala FPL Elite Hub",
+  "description": "The ultimate FPL transfer and management tool for the Copperbelt.",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/?source=pwa",
+  "background_color": "#189E4B",
+  "display": "standalone",
+  "scope": "/",
+  "theme_color": "#189E4B",
+  "shortcuts": [
+    {
+      "name": "My Team",
+      "short_name": "Team",
+      "url": "/?view=team",
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+    }
+  ]
+}
