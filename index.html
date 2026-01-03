@@ -1,57 +1,207 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Kopala FPL | Home</title>
     <style>
-        body { margin: 0; background: #000; overflow: hidden; font-family: sans-serif; }
+        :root {
+            --pl-purple: #37003c;
+            --fpl-cyan: #00f0ff;
+            --fpl-green: #00ff87;
+            --fdr-2: #00ff85;
+            --fdr-3: #ebebeb;
+            --fdr-4: #ff005a;
+            --fdr-5: #80072d;
+            --bg-light: #f4f4f4;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-light);
+            margin: 0;
+            padding: 0;
+            color: #333;
+            padding-bottom: 80px; /* Space for Bottom Nav */
+        }
+
+        /* Container & Section Logic */
+        .content-section {
+            display: none; /* Hidden by default */
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 15px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .content-section.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- FIXTURES UI --- */
+        .fixtures-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+        }
+
+        .nav-btn {
+            background: var(--pl-purple);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-weight: 800;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .date-banner {
+            background-color: var(--fpl-cyan);
+            color: var(--pl-purple);
+            font-weight: 800;
+            padding: 8px;
+            margin: 20px 0 10px 0;
+            font-size: 13px;
+            text-align: center;
+            border-radius: 4px;
+        }
+
+        .fixture-list-row {
+            display: grid;
+            grid-template-columns: 1fr 70px 1fr;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .team-side { display: flex; align-items: center; font-size: 14px; font-weight: 700; }
+        .team-side.home { justify-content: flex-end; text-align: right; }
+        .team-side.away { justify-content: flex-start; text-align: left; }
+        .team-side img { width: 30px; height: 30px; }
+        .home img { margin-left: 10px; }
+        .away img { margin-right: 10px; }
+
+        .match-time { text-align: center; font-size: 12px; font-weight: 800; }
+        .live-badge {
+            background: #ff005a;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse { 0% {opacity: 1;} 50% {opacity: 0.5;} 100% {opacity: 1;} }
+
+        /* --- FDR UI --- */
+        .fdr-card {
+            background: white;
+            padding: 10px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .table-scroll { overflow-x: auto; }
+        table { border-collapse: separate; border-spacing: 2px; width: max-content; }
         
-        #content-wrapper {
-            background: #f4f4f4; height: 100vh; width: 100vw;
-            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.6s;
-            position: relative; z-index: 2; padding: 20px;
-            color: #37003c;
+        th { background: var(--pl-purple); color: white; padding: 5px; font-size: 9px; border-radius: 2px; }
+        td { padding: 6px 3px; text-align: center; font-weight: 800; font-size: 9px; border-radius: 3px; }
+
+        .sticky-team {
+            position: sticky; left: 0; background: white !important; z-index: 5;
+            width: 85px; text-align: left !important; border-right: 2px solid #eee;
         }
 
-        .active #content-wrapper {
-            transform: translateX(-80%) scale(0.85);
-            border-radius: 40px;
-            box-shadow: -20px 0 60px rgba(0,0,0,0.5);
+        .d-2 { background-color: var(--fdr-2); color: var(--pl-purple); }
+        .d-3 { background-color: var(--fdr-3); color: var(--pl-purple); }
+        .d-4 { background-color: var(--fdr-4); color: white; }
+        .d-5 { background-color: var(--fdr-5); color: white; }
+
+        /* --- BOTTOM NAVIGATION --- */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0; height: 65px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            display: flex; justify-content: space-around; align-items: center;
+            border-top: 1px solid rgba(0,0,0,0.1);
+            z-index: 1000;
+            padding-bottom: env(safe-area-inset-bottom);
         }
 
-        .side-nav {
-            position: fixed; right: 0; top: 0; width: 80%; height: 100%;
-            background: #37003c; z-index: 1; display: flex; align-items: center;
-            padding: 40px;
+        .nav-item {
+            text-decoration: none; display: flex; flex-direction: column;
+            align-items: center; color: #888; transition: 0.2s;
         }
 
-        .nav-list { list-style: none; padding: 0; }
-        .nav-list li { margin: 30px 0; opacity: 0; transform: translateX(20px); transition: 0.4s; }
-        .active .nav-list li { opacity: 1; transform: translateX(0); transition-delay: 0.3s; }
+        .nav-item.active { color: var(--pl-purple); }
+        .nav-icon { font-size: 20px; margin-bottom: 2px; }
+        .nav-label { font-size: 10px; font-weight: 700; }
 
-        .nav-list a {
-            color: white; font-size: 1.8rem; font-weight: 700; text-decoration: none;
-            display: flex; align-items: center;
-        }
-        .nav-list a span { color: #00ff85; margin-right: 15px; font-size: 1rem; }
-
-        .menu-btn {
-            position: absolute; top: 40px; right: 20px; background: none; border: none; font-weight: 900;
-        }
     </style>
 </head>
-<body id="app-root">
-    <nav class="side-nav">
-        <ul class="nav-list">
-            <li><a href="#"><span>01</span> Scout Report</a></li>
-            <li><a href="#"><span>02</span> Captain Poll</a></li>
-            <li><a href="#"><span>03</span> Injury News</a></li>
-            <li><a href="#"><span>04</span> Global Leagues</a></li>
-        </ul>
+<body>
+
+    <section id="fixtures" class="content-section active">
+        <div class="fixtures-header">
+            <button class="nav-btn" onclick="loadPrevGW()">PREV</button>
+            <div style="text-align: center;">
+                <h2 style="margin:0; font-size:18px;">Fixtures</h2>
+                <span id="gw-title" style="font-size:12px; font-weight:bold;">Gameweek 20</span>
+            </div>
+            <button class="nav-btn" onclick="loadNextGW()">NEXT</button>
+        </div>
+        <div id="fixture-list-container">
+            </div>
+    </section>
+
+    <section id="fdr" class="content-section">
+        <div style="padding: 10px; text-align: center;">
+            <h2 style="margin:0;">FDR Planner</h2>
+            <input type="text" id="fdrSearch" placeholder="Search team..." style="margin-top:10px; padding:8px; width:80%; border-radius:6px; border:1px solid #ccc;">
+        </div>
+        <div class="fdr-card">
+            <div class="table-scroll">
+                <table id="fdrTable">
+                    <thead><tr id="fdrHeader"><th class="sticky-team">Team</th></tr></thead>
+                    <tbody id="fdrBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <nav class="bottom-nav">
+        <a href="javascript:void(0)" class="nav-item active" onclick="switchTab('fixtures', this)">
+            <span class="nav-icon">📅</span>
+            <span class="nav-label">Matches</span>
+        </a>
+        <a href="javascript:void(0)" class="nav-item" onclick="switchTab('fdr', this)">
+            <span class="nav-icon">📊</span>
+            <span class="nav-label">FDR</span>
+        </a>
+        <a href="javascript:void(0)" class="nav-item">
+            <span class="nav-icon">👤</span>
+            <span class="nav-label">Profile</span>
+        </a>
     </nav>
 
-    <div id="content-wrapper">
-        <button class="menu-btn" onclick="document.getElementById('app-root').classList.toggle('active')">MENU</button>
-        <h1 style="margin-top:60px">My Squad</h1>
-        <div style="width:100%; height:200px; background:#ddd; border-radius:20px;"></div>
-    </div>
+    <script src="app.js"></script>
+    <script>
+        // Tab Switching Logic
+        function switchTab(sectionId, element) {
+            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            document.getElementById(sectionId).classList.add('active');
+            element.classList.add('active');
+        }
+    </script>
 </body>
 </html>
