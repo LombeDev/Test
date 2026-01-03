@@ -1,238 +1,66 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Navigation Experience</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
-    
     <style>
-        :root {
-            --bg-color: #fdfdfd;
-            --text-color: #0a0a0a;
-            --accent-color: #007AFF; /* iOS Blue */
-            --bezier: cubic-bezier(0.7, 0, 0.2, 1);
-            --glass: rgba(255, 255, 255, 0.7);
+        :root { --accent: #1DB954; --bg: #000; }
+        body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: white; overflow-x: hidden; }
+
+        /* The Toggle (Modern Minimalist) */
+        .pwa-toggle {
+            position: fixed; bottom: 30px; right: 30px; z-index: 1000;
+            width: 64px; height: 64px; border-radius: 50%;
+            background: var(--accent); border: none; cursor: pointer;
+            box-shadow: 0 10px 30px rgba(29, 185, 84, 0.3);
+            display: flex; align-items: center; justify-content: center;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        .icon-bar {
+            width: 22px; height: 2px; background: black; position: absolute;
+            transition: 0.4s cubic-bezier(0.68, -0.6, 0.32, 1.6);
+        }
+        .bar-1 { transform: translateY(-4px); }
+        .bar-2 { transform: translateY(4px); }
+        .active .bar-1 { transform: rotate(45deg); }
+        .active .bar-2 { transform: rotate(-45deg); }
+
+        /* The Full-Screen Adaptive Menu */
+        .pwa-menu {
+            position: fixed; inset: 0; z-index: 999;
+            background: linear-gradient(180deg, rgba(29, 185, 84, 0.2) 0%, #000 100%);
+            backdrop-filter: blur(40px);
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.5s ease;
+            display: flex; flex-direction: column; justify-content: center; padding: 10%;
         }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            overflow-x: hidden;
-            height: 200vh; /* Added height to demonstrate background blur */
+        .active .pwa-menu { opacity: 1; pointer-events: auto; }
+
+        .menu-item {
+            font-size: 3.5rem; font-weight: 800; text-decoration: none; color: white;
+            margin: 10px 0; opacity: 0; transform: translateY(40px);
+            transition: 0.6s cubic-bezier(0.23, 1, 0.32, 1);
         }
 
-        /* Hero Background for Demo */
-        .hero {
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(45deg, #eee, #fff);
-        }
+        .active .menu-item { opacity: 1; transform: translateY(0); }
+        /* Staggered Delay */
+        .active .menu-item:nth-child(1) { transition-delay: 0.1s; }
+        .active .menu-item:nth-child(2) { transition-delay: 0.2s; }
+        .active .menu-item:nth-child(3) { transition-delay: 0.3s; }
 
-        /* Toggle Button Container */
-        .menu-btn {
-            position: fixed;
-            top: 40px;
-            right: 40px;
-            z-index: 1000;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: white;
-            border: 1px solid rgba(0,0,0,0.05);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.3s ease;
-        }
-
-        .menu-btn:hover {
-            transform: scale(1.05);
-        }
-
-        .menu-btn:active {
-            transform: scale(0.95);
-        }
-
-        /* The Morphing Hamburger */
-        .icon-box {
-            width: 24px;
-            height: 14px;
-            position: relative;
-        }
-
-        .icon-box span {
-            position: absolute;
-            width: 100%;
-            height: 2px;
-            background: var(--text-color);
-            border-radius: 2px;
-            transition: all 0.5s var(--bezier);
-        }
-
-        .icon-box span:nth-child(1) { top: 0; }
-        .icon-box span:nth-child(2) { bottom: 0; width: 70%; right: 0; }
-
-        /* Icon State: Active */
-        .active .icon-box span:nth-child(1) {
-            transform: translateY(6px) rotate(45deg);
-            background: var(--text-color);
-        }
-        .active .icon-box span:nth-child(2) {
-            transform: translateY(-6px) rotate(-45deg);
-            width: 100%;
-            background: var(--text-color);
-        }
-
-        /* The Overlay */
-        .nav-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100vh;
-            background: var(--glass);
-            backdrop-filter: blur(25px) saturate(180%);
-            -webkit-backdrop-filter: blur(25px) saturate(180%);
-            z-index: 999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            pointer-events: none;
-            /* Circular reveal animation */
-            clip-path: circle(0% at calc(100% - 70px) 70px);
-            transition: clip-path 0.8s var(--bezier);
-        }
-
-        .active .nav-overlay {
-            clip-path: circle(150% at calc(100% - 70px) 70px);
-            pointer-events: auto;
-        }
-
-        /* Menu Links */
-        .nav-list {
-            list-style: none;
-            text-align: left;
-        }
-
-        .nav-item {
-            overflow: hidden; /* For the "reveal" text effect */
-            margin: 15px 0;
-        }
-
-        .nav-link {
-            display: block;
-            font-size: 4rem;
-            font-weight: 700;
-            text-decoration: none;
-            color: var(--text-color);
-            letter-spacing: -2px;
-            opacity: 0;
-            transform: translateY(100%);
-            transition: all 0.8s var(--bezier);
-        }
-
-        .nav-link:hover {
-            color: var(--accent-color);
-            padding-left: 20px;
-        }
-
-        /* Staggered text reveal when menu opens */
-        .active .nav-link {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .active .nav-item:nth-child(1) .nav-link { transition-delay: 0.2s; }
-        .active .nav-item:nth-child(2) .nav-link { transition-delay: 0.3s; }
-        .active .nav-item:nth-child(3) .nav-link { transition-delay: 0.4s; }
-        .active .nav-item:nth-child(4) .nav-link { transition-delay: 0.5s; }
-
-        /* Footer inside menu */
-        .nav-footer {
-            position: absolute;
-            bottom: 50px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80%;
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.9rem;
-            opacity: 0;
-            transition: opacity 1s var(--bezier) 0.6s;
-        }
-
-        .active .nav-footer {
-            opacity: 0.5;
-        }
-
-        @media (max-width: 768px) {
-            .nav-link { font-size: 2.5rem; }
-        }
+        .menu-item:hover { color: var(--accent); transform: scale(1.05) translateX(10px); }
     </style>
 </head>
-<body>
-
-    <button class="menu-btn" id="menuBtn">
-        <div class="icon-box">
-            <span></span>
-            <span></span>
-        </div>
+<body id="pwa-body">
+    <button class="pwa-toggle" onclick="document.getElementById('pwa-body').classList.toggle('active')">
+        <span class="icon-bar bar-1"></span>
+        <span class="icon-bar bar-2"></span>
     </button>
 
-    <nav class="nav-overlay" id="navOverlay">
-        <div class="menu-wrapper">
-            <ul class="nav-list">
-                <li class="nav-item"><a href="#" class="nav-link">Architecture</a></li>
-                <li class="nav-item"><a href="#" class="nav-link">Design Lab</a></li>
-                <li class="nav-item"><a href="#" class="nav-link">Projects</a></li>
-                <li class="nav-item"><a href="#" class="nav-link">Contact</a></li>
-            </ul>
-        </div>
-
-        <div class="nav-footer">
-            <span>© 2026 STUDIO PREMIER</span>
-            <span>SOCIAL: TW / IG / BE</span>
-        </div>
+    <nav class="pwa-menu">
+        <a href="#" class="menu-item">Home</a>
+        <a href="#" class="menu-item">Library</a>
+        <a href="#" class="menu-item">Premium</a>
+        <a href="#" class="menu-item">Settings</a>
     </nav>
-
-    <section class="hero">
-        <h1>Scroll to see blur effect</h1>
-    </section>
-
-    <script>
-        const btn = document.getElementById('menuBtn');
-        const body = document.body;
-
-        btn.addEventListener('click', () => {
-            body.classList.toggle('active');
-            
-            // Accessibility: Prevent scrolling when menu is open
-            if(body.classList.contains('active')) {
-                body.style.overflow = 'hidden';
-            } else {
-                body.style.overflow = 'auto';
-            }
-        });
-
-        // Close menu on link click
-        document.querySelectorAll('.nav-link').forEach(link => {
-            link.addEventListener('click', () => {
-                body.classList.remove('active');
-                body.style.overflow = 'auto';
-            });
-        });
-    </script>
 </body>
 </html>
