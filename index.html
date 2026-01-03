@@ -1,64 +1,197 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FPL Pro PWA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        body { margin: 0; background: #eee; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto; }
-        
-        /* Bottom Sheet Styles */
-        .bottom-sheet {
-            position: fixed; left: 0; right: 0; bottom: 0;
-            height: 70vh; background: white;
-            border-radius: 24px 24px 0 0;
-            transform: translateY(100%);
-            transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1);
-            z-index: 1000; box-shadow: 0 -10px 40px rgba(0,0,0,0.1);
+        :root {
+            --fpl-purple: #37003c;
+            --fpl-green: #00ff85;
+            --fpl-pink: #ff005a;
+            --glass: rgba(255, 255, 255, 0.1);
+            --spring-easing: cubic-bezier(0.5, 1.5, 0.5, 1);
+        }
+
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background: var(--fpl-purple);
+            color: white;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Top Bar - Identity */
+        .top-nav {
             padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.3), transparent);
         }
 
-        .active .bottom-sheet { transform: translateY(0); }
-
-        /* Grab Handle */
-        .handle {
-            width: 40px; height: 5px; background: #ddd;
-            border-radius: 10px; margin: 0 auto 30px;
+        .gameweek-badge {
+            background: var(--fpl-green);
+            color: var(--fpl-purple);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 0.8rem;
         }
 
-        /* Menu Grid */
-        .menu-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
+        /* The Menu Overlay */
+        .fpl-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(55, 0, 60, 0.95);
+            backdrop-filter: blur(15px);
+            z-index: 100;
+            clip-path: circle(0% at 50% 90%); /* Originates from bottom center */
+            transition: clip-path 0.6s cubic-bezier(0.8, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 40px;
         }
 
-        .grid-card {
-            background: #f7f7f7; padding: 25px; border-radius: 16px;
-            text-decoration: none; color: black; font-weight: 600;
-            transition: transform 0.2s;
+        .menu-open .fpl-overlay {
+            clip-path: circle(150% at 50% 90%);
         }
-        .grid-card:active { transform: scale(0.95); background: #f0f0f0; }
 
-        /* Overlay Background */
-        .dimmer {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.5);
-            opacity: 0; pointer-events: none; transition: 0.5s;
+        /* Menu Links - Staggered Slide Up */
+        .menu-items a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin: 15px 0;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.5s var(--spring-easing);
         }
-        .active .dimmer { opacity: 1; pointer-events: auto; }
+
+        .menu-open .menu-items a {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Visual Accents - FPL Pink Lines */
+        .menu-items a::after {
+            content: '';
+            display: block;
+            width: 0;
+            height: 6px;
+            background: var(--fpl-green);
+            transition: width 0.3s ease;
+        }
+
+        .menu-items a:hover::after { width: 60px; }
+
+        /* Bottom Tab Bar (The Real PWA Standard) */
+        .bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.05);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding-bottom: 20px; /* Space for iOS home bar */
+            z-index: 101;
+            backdrop-filter: blur(10px);
+        }
+
+        .tab-item {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.7rem;
+            text-align: center;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .tab-item.active { color: var(--fpl-green); }
+
+        /* The Animated Hamburger / Close Toggle */
+        .fab-menu-btn {
+            width: 56px;
+            height: 56px;
+            background: var(--fpl-pink);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: -40px; /* Pulls it above the bar */
+            box-shadow: 0 8px 20px rgba(255, 0, 90, 0.4);
+            border: 4px solid var(--fpl-purple);
+            cursor: pointer;
+            transition: transform 0.3s var(--spring-easing);
+        }
+
+        .menu-open .fab-menu-btn {
+            transform: rotate(135deg);
+            background: white;
+        }
+
+        .fab-icon {
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+
+        .menu-open .fab-icon { color: var(--fpl-pink); }
+
     </style>
 </head>
-<body id="app">
-    <button style="margin: 50px;" onclick="document.getElementById('app').classList.toggle('active')">
-        Open Menu
-    </button>
+<body id="pwa-app">
 
-    <div class="dimmer" onclick="document.getElementById('app').classList.toggle('active')"></div>
+    <header class="top-nav">
+        <div style="font-weight: 800; letter-spacing: -1px;">FPL<span style="color: var(--fpl-green);">PRO</span></div>
+        <div class="gameweek-badge">GW 20 LIVE</div>
+    </header>
 
-    <div class="bottom-sheet">
-        <div class="handle"></div>
-        <h2 style="margin-bottom: 20px;">Explore</h2>
-        <div class="menu-grid">
-            <a href="#" class="grid-card">Ride</a>
-            <a href="#" class="grid-card">Eat</a>
-            <a href="#" class="grid-card">Package</a>
-            <a href="#" class="grid-card">Rent</a>
+    <nav class="fpl-overlay">
+        <div class="menu-items">
+            <a href="#" style="transition-delay: 0.1s">Leagues</a>
+            <a href="#" style="transition-delay: 0.2s">Research</a>
+            <a href="#" style="transition-delay: 0.3s">Fixtures</a>
+            <a href="#" style="transition-delay: 0.4s">Transfers</a>
+            <a href="#" style="transition-delay: 0.5s">Settings</a>
         </div>
-    </div>
+    </nav>
+
+    <nav class="bottom-bar">
+        <a href="#" class="tab-item active">
+            <div>Points</div>
+        </a>
+        <a href="#" class="tab-item">
+            <div>Pick Team</div>
+        </a>
+        
+        <div class="fab-menu-btn" onclick="toggleMenu()">
+            <span class="fab-icon">+</span>
+        </div>
+
+        <a href="#" class="tab-item">
+            <div>Stats</div>
+        </a>
+        <a href="#" class="tab-item">
+            <div>Status</div>
+        </a>
+    </nav>
+
+    <script>
+        function toggleMenu() {
+            document.getElementById('pwa-app').classList.toggle('menu-open');
+        }
+    </script>
 </body>
 </html>
