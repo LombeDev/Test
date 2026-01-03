@@ -2,87 +2,237 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kopala FPL Elite</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Navigation Experience</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#189E4B">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+    <style>
+        :root {
+            --bg-color: #fdfdfd;
+            --text-color: #0a0a0a;
+            --accent-color: #007AFF; /* iOS Blue */
+            --bezier: cubic-bezier(0.7, 0, 0.2, 1);
+            --glass: rgba(255, 255, 255, 0.7);
+        }
 
-    <link rel="stylesheet" href="style.css">
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow-x: hidden;
+            height: 200vh; /* Added height to demonstrate background blur */
+        }
+
+        /* Hero Background for Demo */
+        .hero {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(45deg, #eee, #fff);
+        }
+
+        /* Toggle Button Container */
+        .menu-btn {
+            position: fixed;
+            top: 40px;
+            right: 40px;
+            z-index: 1000;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: white;
+            border: 1px solid rgba(0,0,0,0.05);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s ease;
+        }
+
+        .menu-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .menu-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* The Morphing Hamburger */
+        .icon-box {
+            width: 24px;
+            height: 14px;
+            position: relative;
+        }
+
+        .icon-box span {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: var(--text-color);
+            border-radius: 2px;
+            transition: all 0.5s var(--bezier);
+        }
+
+        .icon-box span:nth-child(1) { top: 0; }
+        .icon-box span:nth-child(2) { bottom: 0; width: 70%; right: 0; }
+
+        /* Icon State: Active */
+        .active .icon-box span:nth-child(1) {
+            transform: translateY(6px) rotate(45deg);
+            background: var(--text-color);
+        }
+        .active .icon-box span:nth-child(2) {
+            transform: translateY(-6px) rotate(-45deg);
+            width: 100%;
+            background: var(--text-color);
+        }
+
+        /* The Overlay */
+        .nav-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: var(--glass);
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            /* Circular reveal animation */
+            clip-path: circle(0% at calc(100% - 70px) 70px);
+            transition: clip-path 0.8s var(--bezier);
+        }
+
+        .active .nav-overlay {
+            clip-path: circle(150% at calc(100% - 70px) 70px);
+            pointer-events: auto;
+        }
+
+        /* Menu Links */
+        .nav-list {
+            list-style: none;
+            text-align: left;
+        }
+
+        .nav-item {
+            overflow: hidden; /* For the "reveal" text effect */
+            margin: 15px 0;
+        }
+
+        .nav-link {
+            display: block;
+            font-size: 4rem;
+            font-weight: 700;
+            text-decoration: none;
+            color: var(--text-color);
+            letter-spacing: -2px;
+            opacity: 0;
+            transform: translateY(100%);
+            transition: all 0.8s var(--bezier);
+        }
+
+        .nav-link:hover {
+            color: var(--accent-color);
+            padding-left: 20px;
+        }
+
+        /* Staggered text reveal when menu opens */
+        .active .nav-link {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .active .nav-item:nth-child(1) .nav-link { transition-delay: 0.2s; }
+        .active .nav-item:nth-child(2) .nav-link { transition-delay: 0.3s; }
+        .active .nav-item:nth-child(3) .nav-link { transition-delay: 0.4s; }
+        .active .nav-item:nth-child(4) .nav-link { transition-delay: 0.5s; }
+
+        /* Footer inside menu */
+        .nav-footer {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: opacity 1s var(--bezier) 0.6s;
+        }
+
+        .active .nav-footer {
+            opacity: 0.5;
+        }
+
+        @media (max-width: 768px) {
+            .nav-link { font-size: 2.5rem; }
+        }
+    </style>
 </head>
 <body>
 
-<div id="kopala-app">
-    <section id="login-screen" class="view">
-        <div class="auth-card">
-            <div class="header-main">
-                <span class="badge">ZAMBIA FPL</span>
-                <h1>Mwishibe Kopala</h1>
-                <p>Enter Team ID to sync your squad</p>
-            </div>
-            <div class="auth-body">
-                <input type="number" id="team-id-input" placeholder="Enter ID (e.g. 123456)">
-                <button onclick="loginWithID()" class="btn-full">Sync My Team</button>
-                <button class="btn-text" onclick="toggleHelp()">Where do I find my ID?</button>
-                <div id="help-box" class="hidden">
-                    <p>Login to FPL > Go to 'Points' tab > Check the URL. Your ID is the number after <code>/entry/</code>.</p>
-                </div>
-            </div>
+    <button class="menu-btn" id="menuBtn">
+        <div class="icon-box">
+            <span></span>
+            <span></span>
         </div>
+    </button>
+
+    <nav class="nav-overlay" id="navOverlay">
+        <div class="menu-wrapper">
+            <ul class="nav-list">
+                <li class="nav-item"><a href="#" class="nav-link">Architecture</a></li>
+                <li class="nav-item"><a href="#" class="nav-link">Design Lab</a></li>
+                <li class="nav-item"><a href="#" class="nav-link">Projects</a></li>
+                <li class="nav-item"><a href="#" class="nav-link">Contact</a></li>
+            </ul>
+        </div>
+
+        <div class="nav-footer">
+            <span>© 2026 STUDIO PREMIER</span>
+            <span>SOCIAL: TW / IG / BE</span>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <h1>Scroll to see blur effect</h1>
     </section>
 
-    <section id="dashboard-screen" class="view hidden">
-        <header class="manager-header">
-            <div class="profile-main">
-                <div id="m-initials" class="avatar">--</div>
-                <div class="m-info">
-                    <h2 id="m-team-name">Team Name</h2>
-                    <p id="m-manager-name">Manager Name</p>
-                </div>
-                <button onclick="logout()" class="btn-logout">Logout</button>
-            </div>
-            <div class="stats-bar">
-                <div class="stat"><span>Rank</span><strong id="m-rank">--</strong></div>
-                <div class="stat"><span>Total</span><strong id="m-total">--</strong></div>
-                <div class="stat"><span>Bank</span><strong id="m-bank" class="copper">£0.0m</strong></div>
-            </div>
-        </header>
+    <script>
+        const btn = document.getElementById('menuBtn');
+        const body = document.body;
 
-        <div id="pitch-skeleton" class="pitch-area">
-            <div class="pitch-row"><div class="skeleton-p"></div></div>
-            <div class="pitch-row"><div class="skeleton-p"></div><div class="skeleton-p"></div><div class="skeleton-p"></div></div>
-            <div class="pitch-row"><div class="skeleton-p"></div><div class="skeleton-p"></div><div class="skeleton-p"></div></div>
-            <div class="pitch-row"><div class="skeleton-p"></div><div class="skeleton-p"></div></div>
-        </div>
+        btn.addEventListener('click', () => {
+            body.classList.toggle('active');
+            
+            // Accessibility: Prevent scrolling when menu is open
+            if(body.classList.contains('active')) {
+                body.style.overflow = 'hidden';
+            } else {
+                body.style.overflow = 'auto';
+            }
+        });
 
-        <div id="pitch-real" class="pitch-area hidden">
-            <div id="player-grid"></div>
-        </div>
-    </section>
-
-    <div id="confirm-modal" class="modal hidden">
-        <div class="modal-content">
-            <h3>Review Transfers</h3>
-            <div id="summary-list" class="summary-list"></div>
-            <div id="hit-warning" class="warning-box hidden">
-                ⚠️ Point Penalty: <span id="penalty-val">-4</span>
-            </div>
-            <div class="modal-actions">
-                <button onclick="closeConfirm()" class="btn-secondary">Cancel</button>
-                <button onclick="finalizeTransfers()" class="btn-primary">Confirm & Save</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="save-bar" class="save-bar">
-        <div class="bar-text">Pending Transfers</div>
-        <button onclick="showSummary()" class="btn-save">Review & Save</button>
-    </div>
-</div>
-
-<script src="app.js"></script>
+        // Close menu on link click
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                body.classList.remove('active');
+                body.style.overflow = 'auto';
+            });
+        });
+    </script>
 </body>
 </html>
